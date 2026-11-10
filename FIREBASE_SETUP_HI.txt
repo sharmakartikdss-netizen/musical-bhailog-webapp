@@ -1,0 +1,46 @@
+MUSICAL BHAILOG — Firebase setup (Hindi)
+
+इस पैकेज में वेबसाइट, लोगो और Firebase cloud-sync का starter setup है। सभी डिवाइस पर एडमिन के बदलाव दिखाने के लिए Firebase configure करना और साइट को GitHub Pages जैसे HTTPS host पर publish करना जरूरी है। सिर्फ index.html को फोन/कंप्यूटर में सीधे file:// से खोलने पर Firebase modules काम नहीं करेंगे।
+
+FREE / COST NOTES
+- फोटो, लोगो, वीडियो और ऑडियो के लिए सार्वजनिक URL इस्तेमाल करें। Firebase Storage में कोई फ़ाइल upload नहीं होती।
+- Firebase Spark (free) plan में Authentication और Firestore की quotas/limits लागू होती हैं। सामान्य कम उपयोग free रह सकता है, लेकिन किसी भी ट्रैफिक के लिए zero-cost की गारंटी नहीं है। Quotas पार होने पर service सीमित हो सकती है।
+- वेबसाइट में visitor name/mobile login इस starter version में केवल उसी browser में local रहता है; उसे cloud पर भेजा नहीं जाता। इसे visitor data के लिए इस्तेमाल करने से पहले privacy notice और secure collection setup जरूरी है।
+
+1) https://console.firebase.google.com/ पर Firebase project बनाएं।
+2) Project settings > Your apps > Web app (</>) जोड़ें। Config values कॉपी करें।
+3) आपके bhailog-e5bf2 प्रोजेक्ट की Web App Firebase config पहले से firebase-sync.js में भर दी गई है।
+4) firebase-sync.js में REPLACE_WITH_YOUR_FIREBASE_ADMIN_EMAIL को उसी ईमेल से बदलें जिससे आपने Firebase Authentication में Admin user बनाया है।
+5) Firebase Console > Authentication > Sign-in method में Email/Password enable करें। Authentication > Users में उसी email का admin user बनाकर मजबूत password सेट करें।
+6) Firestore Database बनाएं और Rules में नीचे दिए rules डालें। ADMIN_EMAIL को उसी admin email से बदलें:
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'ADMIN_EMAIL';
+    }
+    match /website/publicContent {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
+
+7) पूरी Musical_Bhailog_Firebase_Free फोल्डर की फाइलें GitHub repository में डालें और Settings > Pages से publish करें। Website को GitHub Pages के HTTPS URL से खोलें।
+8) साइट के footer में हल्का blur किया गया Admin Panel खोलें, Firebase में बनाया admin email/password डालें। पहली बार लॉगिन के बाद कोई एक content change करके Save करें ताकि publicContent document Firestore में बन जाए।
+9) अब वेबसाइट को दूसरे फोन/कंप्यूटर में उसी published URL से खोलने पर Firestore के content changes sync होंगे।
+
+FILES
+- index.html: website
+- logo.svg: default logo
+- firebase-sync.js: Firebase Auth + Firestore sync code
+- FIREBASE_SETUP_HI.txt: this guide
+
+IMPORTANT
+- Firebase config में apiKey public web config का हिस्सा है, लेकिन Firestore security rules जरूरी हैं।
+- Admin panel button पर blur visual effect है; hover/focus करने पर साफ होता है।
+- बाहरी YouTube/Instagram/Facebook/Spotify content की playback/embedding उनकी platform restrictions पर निर्भर करती है।
